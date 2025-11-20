@@ -19,7 +19,7 @@ Vagrant.configure("2") do |config|
       apt-get install -y dotnet-sdk-9.0
 
       echo "=== Клонування репозиторію Edo-Sign4 ==="
-      su - vagrant -c "rm -rf ~/Edo-Sign4 && git clone https://github.com/onyshchenkodmytro/EdoSign-4 ~/Edo-Sign4"
+      su - vagrant -c "rm -rf ~/EdoSign-4 && git clone https://github.com/onyshchenkodmytro/EdoSign-4 ~/EdoSign-4"
 
       echo "=== Копіювання коректного NuGet.Config ==="
       su - vagrant -c "mkdir -p ~/.nuget/NuGet"
