@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,50 +40,23 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // =======================================================
-// 2. ASP.NET Identity
+// 2. ASP.NET Identity (used for roles, UserManager, etc)
 builder.Services
     .AddIdentity<ApplicationUser, IdentityRole>(opt =>
     {
-        opt.Password.RequiredLength = 8;
-        opt.Password.RequireDigit = true;
-        opt.Password.RequireNonAlphanumeric = true;
-        opt.Password.RequireUppercase = true;
-        opt.Password.RequireLowercase = false;
-        opt.Password.RequiredUniqueChars = 1;
-        opt.User.RequireUniqueEmail = true;
+        opt.Password.RequiredLength = 3; // password now irrelevant
+        opt.User.RequireUniqueEmail = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
 // =======================================================
-// 3. OpenID Connect (EdoAuthServer)
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
-})
-.AddCookie()
-.AddOpenIdConnect("oidc", options =>
-{
-    options.Authority = "https://localhost:7090";
-    options.ClientId = "mvc";
-    options.ClientSecret = "secret";
-    options.ResponseType = "code";
+// 3. REMOVE OpenID Connect completely (fake login used instead)
+// builder.Services.AddAuthentication...
+// (Залишено cookie authentication, бо воно потрібно MVC?)
 
-    options.Scope.Add("openid");
-    options.Scope.Add("profile");
-    options.Scope.Add("email");
-    options.Scope.Add("custom_profile");
-    options.Scope.Add("edolab.api");
-
-    options.SaveTokens = true;
-    options.GetClaimsFromUserInfoEndpoint = true;
-
-    options.TokenValidationParameters.NameClaimType = "preferred_username";
-    options.TokenValidationParameters.RoleClaimType = "role";
-
-    options.RequireHttpsMetadata = false;
-});
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
 
 // =======================================================
 // 4. MVC
@@ -102,7 +76,7 @@ builder.Services.AddScoped<CryptoService>();
 var app = builder.Build();
 
 // =======================================================
-// 8. Auto-migration: create DB and apply migrations
+// 8. Auto-migration
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -118,7 +92,26 @@ using (var scope = app.Services.CreateScope())
 }
 
 // =======================================================
-// 9. Middleware
+// 🔥 9. FAKE AUTH MIDDLEWARE (AUTOMATIC LOGIN)
+// =======================================================
+app.Use(async (context, next) =>
+{
+    var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, "TestUser"),
+        new Claim(ClaimTypes.NameIdentifier, "1"),
+        new Claim(ClaimTypes.Email, "test@example.com"),
+        new Claim("role", "User")
+    };
+
+    var identity = new ClaimsIdentity(claims, "FakeAuth");
+    context.User = new ClaimsPrincipal(identity);
+
+    await next();
+});
+
+// =======================================================
+// 10. Middleware
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -130,6 +123,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// ❗ Authentication now faked, but these can remain
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -138,4 +132,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
