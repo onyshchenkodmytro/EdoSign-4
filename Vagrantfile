@@ -18,8 +18,8 @@ Vagrant.configure("2") do |config|
       apt-get update -y
       apt-get install -y dotnet-sdk-9.0
 
-      echo "=== Клонування репозиторію Edo-Sign33 ==="
-      su - vagrant -c "rm -rf ~/Edo-Sign33 && git clone https://github.com/onyshchenkodmytro/Edo-Sign33 ~/Edo-Sign33"
+      echo "=== Клонування репозиторію Edo-Sign4 ==="
+      su - vagrant -c "rm -rf ~/Edo-Sign4 && git clone https://github.com/onyshchenkodmytro/Edo-Sign4 ~/Edo-Sign4"
 
       echo "=== Копіювання коректного NuGet.Config ==="
       su - vagrant -c "mkdir -p ~/.nuget/NuGet"
@@ -32,10 +32,10 @@ Vagrant.configure("2") do |config|
 
 
       echo "=== Publish EdoAuthServer ==="
-      su - vagrant -c "dotnet publish ~/Edo-Sign33/EdoAuthServer/EdoAuthServer.csproj -c Release -o ~/auth"
+      su - vagrant -c "dotnet publish ~/Edo-Sign4/EdoAuthServer/EdoAuthServer.csproj -c Release -o ~/auth"
 
       echo "=== Publish EdoSign.Lab-3 ==="
-      su - vagrant -c "dotnet publish ~/Edo-Sign33/EdoSign.Lab-3/EdoSign.Lab-3.csproj -c Release -o ~/main"
+      su - vagrant -c "dotnet publish ~/Edo-Sign4/EdoSign.Lab-3/EdoSign.Lab-3.csproj -c Release -o ~/main"
 
       echo "=== Запуск EdoAuthServer (порт 7090) ==="
       su - vagrant -c "nohup dotnet ~/auth/EdoAuthServer.dll --urls=http://0.0.0.0:7090 > ~/auth.log 2>&1 &"
