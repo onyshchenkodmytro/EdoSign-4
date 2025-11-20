@@ -123,7 +123,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// ❗ Authentication now faked, but these can remain
+
 app.UseAuthentication();
 app.UseAuthorization();
 
