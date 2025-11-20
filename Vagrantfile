@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
       apt-get update -y
       apt-get install -y dotnet-sdk-9.0
 
-      echo "=== Клонування репозиторію Edo-Sign4 ==="
+      echo "=== Клонування репозиторію EdoSign-4 ==="
       su - vagrant -c "rm -rf ~/EdoSign-4 && git clone https://github.com/onyshchenkodmytro/EdoSign-4 ~/EdoSign-4"
 
       echo "=== Копіювання коректного NuGet.Config ==="
@@ -26,22 +26,32 @@ Vagrant.configure("2") do |config|
       cp /vagrant/NuGet.Config /home/vagrant/.nuget/NuGet/NuGet.Config
       chown vagrant:vagrant /home/vagrant/.nuget/NuGet/NuGet.Config
 
-      echo "=== Restore ==="
-      su - vagrant -c "dotnet restore --no-dependencies ~/EdoSign-4/EdoAuthServer/EdoAuthServer.csproj"
-      su - vagrant -c "dotnet restore --no-dependencies ~/EdoSign-4/EdoSign.Lab-3/EdoSign.Lab-3.csproj"
+      echo "=== Копіювання SQLite бази ==="
+      # Якщо файл app.db існує в корені проекту — копіюємо
+      if [ -f /vagrant/app.db ]; then
+        echo " → Файл app.db знайдено. Копіюю до ~/main/app.db"
+        su - vagrant -c "mkdir -p ~/main"
+        cp /vagrant/app.db /home/vagrant/main/app.db
+        chown vagrant:vagrant /home/vagrant/main/app.db
+      else
+        echo " ⚠ Файл app.db НЕ знайдено у /vagrant. SQLite створить порожню базу!"
+      fi
 
+      echo "=== Restore ==="
+      su - vagrant -c "cd ~/EdoSign-4/EdoAuthServer && dotnet restore --no-dependencies"
+      su - vagrant -c "cd ~/EdoSign-4/EdoSign.Lab-3 && dotnet restore --no-dependencies"
 
       echo "=== Publish EdoAuthServer ==="
-      su - vagrant -c "dotnet publish ~/EdoSign-4/EdoAuthServer/EdoAuthServer.csproj -c Release -o ~/auth"
+      su - vagrant -c "cd ~/EdoSign-4/EdoAuthServer && dotnet publish -c Release -o ~/auth"
 
-      echo "=== Publish EdoSign.Lab-3 ==="
-      su - vagrant -c "dotnet publish ~/EdoSign-4/EdoSign.Lab-3/EdoSign.Lab-3.csproj -c Release -o ~/main"
+      echo '=== Publish EdoSign.Lab-3 ==='
+      su - vagrant -c "cd ~/EdoSign-4/EdoSign.Lab-3 && dotnet publish -c Release -o ~/main"
 
       echo "=== Запуск EdoAuthServer (порт 7090) ==="
       su - vagrant -c "nohup dotnet ~/auth/EdoAuthServer.dll --urls=http://0.0.0.0:7090 > ~/auth.log 2>&1 &"
 
       echo "=== Запуск EdoSign.Lab-3 (порт 7275) ==="
-      su - vagrant -c "nohup dotnet ~/main/EdoSign.Lab-3.dll --urls=http://0.0.0.0:7275 > ~/main.log 2>&1 &"
+      su - vagrant -c "nohup dotnet /home/vagrant/main/EdoSign.Lab-3.dll --contentroot /home/vagrant/main --urls=http://0.0.0.0:7275 > ~/main.log 2>&1 &"
 
       echo "==========================================================================="
       echo "=== ГОТОВО! ==="
