@@ -27,8 +27,8 @@ Vagrant.configure("2") do |config|
       chown vagrant:vagrant /home/vagrant/.nuget/NuGet/NuGet.Config
 
       echo "=== Restore ==="
-      su - vagrant -c "dotnet restore --no-dependencies ~/Edo-Sign33/EdoAuthServer/EdoAuthServer.csproj"
-      su - vagrant -c "dotnet restore --no-dependencies ~/Edo-Sign33/EdoSign.Lab-3/EdoSign.Lab-3.csproj"
+      su - vagrant -c "dotnet restore --no-dependencies ~/Edo-Sign4/EdoAuthServer/EdoAuthServer.csproj"
+      su - vagrant -c "dotnet restore --no-dependencies ~/Edo-Sign4/EdoSign.Lab-3/EdoSign.Lab-3.csproj"
 
 
       echo "=== Publish EdoAuthServer ==="
