@@ -41,7 +41,7 @@
 
                 <td>
                     @(d.SignedAt.HasValue
-                        ? d.SignedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                        ? d.SignedAt.Value.AddHours(2).ToString("yyyy-MM-dd HH:mm")
                         : "-")
                 </td>
 
