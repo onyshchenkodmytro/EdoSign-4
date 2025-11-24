@@ -92,7 +92,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 // =======================================================
-// 🔥 9. FAKE AUTH MIDDLEWARE (AUTOMATIC LOGIN)
+// 9. FAKE AUTH MIDDLEWARE (AUTOMATIC LOGIN)
 // =======================================================
 app.Use(async (context, next) =>
 {
